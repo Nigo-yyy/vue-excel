@@ -7,10 +7,9 @@
         class="upload-demo"
         action=""
         :on-change="handleChange"
-        :on-exceed="handleExceed"
         :on-remove="handleRemove"
         :file-list="fileListUpload"
-        :limit="limitUpload"
+        :limit="1"
         accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
         :auto-upload="false"
       >
@@ -52,15 +51,12 @@ export default {
   data() {
     return {
       excelData: [], //存放数据的数组
-      fileListUpload: [],
-      fileTemp: "",
-      limitUpload: 1,
-      file: null,
-      colData: colData,
+      fileListUpload: [], //upload绑定的fileList
+      fileTemp: "", //导入函数需要的File内容
+      colData: colData, //维护table列
     };
   },
   methods: {
-    handleExceed() {},
     handleChange(file) {
       this.fileTemp = file.raw;
       if (this.fileTemp) {
@@ -92,15 +88,13 @@ export default {
     importfxx(obj) {
       // let _this = this;
       // 通过DOM取文件数据
-      this.file = obj;
       var rABS = false; //是否将文件读取为二进制字符串
-      var f = this.file;
+      var f = obj;
       var reader = new FileReader();
       const self = this;
       //if (!FileReader.prototype.readAsBinaryString) {
       FileReader.prototype.readAsBinaryString = function (f) {
         var binary = "";
-        var rABS = false; //是否将文件读取为二进制字符串
         // var pt = this;
         var wb; //读取完成的数据
         var outdata;
@@ -113,16 +107,11 @@ export default {
             binary += String.fromCharCode(bytes[i]);
           }
           var XLSX = require("xlsx");
-          if (rABS) {
-            // wb = XLSX.read(btoa(fixdata(binary)), { //手动转化
-            //     type: 'base64'
-            // });
-          } else {
-            wb = XLSX.read(binary, {
-              type: "binary",
-            });
-          }
+          wb = XLSX.read(binary, {
+            type: "binary",
+          });
           outdata = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]); //outdata就是需要的那个数组
+          //   console.table(outdata);
           self.excelData = [...outdata];
         };
         reader.readAsArrayBuffer(f);
@@ -136,18 +125,15 @@ export default {
     //导出函数
     getExcel(arrData) {
       if (!arrData || !arrData.length) return;
-      const self = this;
       require.ensure([], () => {
         const { export_json_to_excel } = require("../excel/expor2Excal");
-        const filterVal = self.colData.map((item) => item.prop);
-        const tHeader = self.colData.map((item) => item.label);
-        const json = self.excelData;
-        const data = this.formatJson(filterVal, json);
-        // console.log(data, "data");
-        export_json_to_excel(tHeader, data, "导出列表名称");
+        const filterVal = this.colData.map((item) => item.prop);
+        const tHeader = this.colData.map((item) => item.label);
+        const data = this.formatJson(filterVal, arrData);
+        export_json_to_excel(tHeader, data, "excel表名");
       });
     },
-
+    //保持输出顺序与表头一致
     formatJson(filterVal, jsonData) {
       return jsonData.map((v) => filterVal.map((j) => v[j]));
     },
