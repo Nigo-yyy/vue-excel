@@ -1,0 +1,22 @@
+export const colData = [
+  {
+    prop:'Author',
+    label:'作者'
+  },
+  {
+    prop:'Date',
+    label:'时间'
+  },
+  {
+    prop:'Id',
+    label:'序号'
+  },
+  {
+    prop:'Readings',
+    label:'阅读量'
+  },
+  {
+    prop:'Title',
+    label:'名称'
+  }
+]
